@@ -1,4 +1,8 @@
 document.addEventListener('DOMContentLoaded', function () {
+  var conn = chrome.extension.connect({name: 'Sample Communication'});
+  var bg = chrome.extension.getBackgroundPage();
+  alert(bg.localStorage.getItem('__DB__'));
+
   function renderImage() {
     var qrinfo = {
       image: $('#imagefile').prop('files')[0],
@@ -94,6 +98,13 @@ document.addEventListener('DOMContentLoaded', function () {
       download[0].click();
       download.remove();
     }
+  });
+
+
+
+
+  $('#qrlink, #imageinput').keyup(function(evt) {
+    conn.postMessage({a: 123123});
   });
 
 });

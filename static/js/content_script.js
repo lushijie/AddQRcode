@@ -54,18 +54,18 @@
 // 		$(__fillDB__[i].selector).tooltip({cssClass:"tooltip_caption"});//set tooltip style
 // 	}
 // }
+alert(123123);
 
-// chrome.runtime.onMessage.addListener(function (request, sender, sendResponse){
-// 	if(request.action == "fill"){
-// 		fillAction();
-// 	};
+chrome.runtime.onMessage.addListener(
+  function(request, sender, sendResponse) {
+    console.log(sender.tab ?
+                "from a content script:" + sender.tab.url :
+                "from the extension");
+    // if (request.greeting == "hello")//判断是否为要处理的消息
+      // sendResponse({farewell: "goodbye"});
+});
 
-// 	if(request.action=="store"){
-// 		localStorage.__fillDB__=JSON.stringify(request.transdata);//restore localStorage
-// 	}
 
-// 	refreshPop();
-// });
 
 // //console.log(chrome.runtime.id);
 

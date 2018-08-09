@@ -6,6 +6,7 @@
 	"background": {
     "scripts": [
       "static/js/lib/jquery-2.0.0.min.js",
+      "static/js/lib/vue.min.js",
       "static/js/background.js"
     ]
   },
@@ -24,14 +25,21 @@
 		"default_popup": "popup.html"
 	},
 	"offline_enabled":true,
-	"permissions" : ["tabs"],
+	"permissions" : [
+    "contextMenus",
+    "tabs",
+    "webRequest",
+    "storage"
+  ],
 	"content_scripts":[{
 		"matches":["*://*/*"],
 		"js":[
       "static/js/lib/jquery-2.0.0.min.js",
+      "static/js/lib/vue.min.js",
       "static/js/lib/qrcode.min.js",
       "static/js/content_script.js"
     ],
-		"css":[]
+		"css":[],
+    "run_at": "document_start"
 	}]
 }
