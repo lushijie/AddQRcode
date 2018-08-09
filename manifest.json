@@ -10,6 +10,9 @@
       "static/js/background.js"
     ]
   },
+  "sandbox": {
+    "pages": ["popup.html"]
+  },
 	"homepage_url":"https://lushijie.github.io/AddQRcode/popup.html",
 	"icons":{
 		"16": "static/img/icon-16.png",
