@@ -10,7 +10,7 @@
       "static/js/background.js"
     ]
   },
-	"homepage_url":"https://github.com/lushijie/AddQRcode",
+	"homepage_url":"https://lushijie.github.io/AddQRcode/popup.html",
 	"icons":{
 		"16": "static/img/icon-16.png",
 		"48": "static/img/icon-48.png",
