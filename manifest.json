@@ -1,0 +1,28 @@
+﻿{
+	"manifest_version": 2,
+	"name": "AddQRcode",
+	"version": "1.0",
+	"description": "Add QRcode to image",
+	"background": { "scripts": ["3rd/jquery-2.0.0.min.js", "background.js"] },
+	"homepage_url":"https://github.com/lushijie/AddQRcode",
+	"icons":{
+		"16": "images/icon-16.png",
+		"48": "images/icon-48.png",
+		"128": "images/icon-128.png"
+	},
+	"browser_action": {
+		"default_icon": {
+			"19": "images/icon-19.png",
+			"38": "images/icon-38.png"
+		},
+		"default_title": "AddQRcode",
+		"default_popup": "popup.html"
+	},
+	"offline_enabled":true,
+	"permissions" : ["tabs"],
+	"content_scripts":[{
+		"matches":["*://*/*"],
+		"js":["3rd/jquery-2.0.0.min.js", "3rd/qrcode.min.js", "content_script.js"],
+		"css":[]
+	}]
+}

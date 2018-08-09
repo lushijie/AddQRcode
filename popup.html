@@ -1,0 +1,96 @@
+﻿<!DOCTYPE html>
+<html>
+	<head>
+		<title>AddQRcode</title>
+		<link rel="stylesheet" type="text/css" href="reset.css" />
+
+    <style>
+      body {
+        width: 426px;
+      }
+      #content {
+        padding: 30px;
+        font-size: 14px;
+      }
+
+      .form-group {
+        margin-bottom: 10px;
+      }
+
+      .form-group .form-label {
+        display: inline-block;
+        width: 90px;
+      }
+
+      .btn {
+        padding: 3px 8px;
+        border-radius: 2px;
+        outline: none;
+        width: 60px;
+      }
+
+      #preview {
+        box-shadow: 0px 2px 12px #555;
+        max-width: 300px;
+      }
+
+      input, select {
+        width: 200px;
+      }
+    </style>
+	</head>
+<body>
+<div id="content">
+  <form clsss="form-container">
+    <ul>
+      <li class="form-group">
+        <span class="form-label">底图</span>
+        <span class="form-item">
+          <input id="imageinput" type="text" value="">
+          <button class="btn btn-upload">上传</button>
+          <input id="imagefile" type="file" style='position: absolute; visibility: hidden;'/>
+        </span>
+      </li>
+
+      <li class="form-group">
+        <span class="form-label">二维码链接</span>
+        <span class="form-item"> <input id="qrlink" type="text" required> </span>
+      </li>
+
+      <li class="form-group">
+        <span class="form-label">二维码位置</span>
+        <span class="form-item">
+          <select id="qrpos" name="" id="">
+            <option value="1">左上角</option>
+            <option value="2">右上角</option>
+            <option value="3">左下角</option>
+            <option value="4" selected>右下角</option>
+            <option value="5">居中</option>
+          </select>
+        </span>
+      </li>
+
+      <li class="form-group">
+        <span class="form-label">二维码尺寸</span>
+        <span class="form-item"> <input id="qrwidth" type="number" value="200" required> </span>
+      </li>
+
+      <li class="form-group">
+        <span class="form-label">二维码边距</span>
+        <span class="form-item"> <input id="qrmargin" type="number" value="40" required> </span>
+      </li>
+    </ul>
+
+    <div style="margin-bottom: 20px;">
+      <input class="btn btn-merge" type="submit" value="合成" />
+      <input class="btn btn-download" type="submit" value="下载" />
+    </div>
+
+    <img id="preview" src="" alt="">
+  </form>
+</div>
+</body>
+<script src="3rd/jquery-2.0.0.min.js"></script>
+<script src="3rd/qrcode.min.js"></script>
+<script src="popup.js"></script>
+</html>
