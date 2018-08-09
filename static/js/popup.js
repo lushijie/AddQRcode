@@ -3,7 +3,13 @@ document.addEventListener('DOMContentLoaded', function () {
   var bg = chrome.extension.getBackgroundPage();
 
   // 恢复
-  refreshPageData();
+  var __DB__ = JSON.parse(bg.localStorage.getItem('__DB__') || '{}');
+  if (__DB__.action === 'store') {
+    $('#qrwidth').val(__DB__.$qrwidth) || 200;
+    $('#qrmargin').val(__DB__.$qrmargin) || 40;
+    $('#qrpos').val(__DB__.$qrpos) || 4;
+    $('#qrlink').val(__DB__.$qrlink);
+  }
 
   function renderImage() {
     var $qrfile = $('#qrfile').prop('files')[0];
@@ -94,32 +100,22 @@ document.addEventListener('DOMContentLoaded', function () {
     conn.postMessage(getStoreData(action));
   }
 
-  // 更新页面数据
-  function refreshPageData() {
-    var __DB__ = JSON.parse(bg.localStorage.getItem('__DB__') || '{}');
-    if (__DB__.action === 'store') {
-      $('#qrwidth').val(__DB__.$qrwidth) || 200;
-      $('#qrmargin').val(__DB__.$qrmargin) || 40;
-      $('#qrpos').val(__DB__.$qrpos) || 4;
-      $('#qrlink').val(__DB__.$qrlink);
-    } else if (__DB__.action === 'clear') {
-      $('#qrwidth').val(200);
-      $('#qrmargin').val(40);
-      $('#qrpos').val(4);
-      $('#qrlink').val('');
-    }
-  }
-
   // 上传文件
   $('.btn-upload').click(function(evt) {
     evt.preventDefault();
     $('#qrfile').click();
   });
 
-  // 清除
+  // 重置
   $('.btn-reset').click(function(evt) {
     evt.preventDefault();
-    refreshStoreData('clear');
+
+    // reset
+    $('#qrwidth').val(200);
+    $('#qrmargin').val(40);
+    $('#qrpos').val(4);
+    $('#qrlink').val('');
+
     setTimeout(function() {
       refreshPageData();
     }, 50);
