@@ -12,9 +12,9 @@
       <li class="form-group">
         <span class="form-label">背景图</span>
         <span class="form-item">
-          <input id="qrfileinput" type="text" value="" readonly>
+          <input id="qrfilepath" type="text" value="" readonly>
           <button class="btn btn-upload">上传</button>
-          <input id="qrfile" type="file" style='position: absolute; visibility: hidden;'/>
+          <input id="qrfilewrap" type="file" style='position: absolute; visibility: hidden;'/>
         </span>
       </li>
 
@@ -48,15 +48,21 @@
       </li>
 
 
-      <li class="form-group custom-pos-group">
+      <li class="form-group">
         <span class="form-label">二维码尺寸</span>
         <span class="form-item"> <input id="qrwidth" type="number" min="30" value="200" required> </span>
       </li>
 
       <li class="form-group qr-margin-group">
         <span class="form-label">二维码边距</span>
-        <span class="form-item"> <input id="qrmargin" type="number" value="40" required> </span>
+        <span class="form-item"> <input id="qrmargin" type="number" step="10" value="40" required> </span>
       </li>
+
+      <li class="form-group" style="display: none;">
+        <span class="form-label">二维码base64img</span>
+        <span class="form-item"> <input id="qrbase64" value=""> </span>
+      </li>
+
     </ul>
 
     <div style="margin-bottom: 20px;">

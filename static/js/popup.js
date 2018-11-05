@@ -1,37 +1,15 @@
 document.addEventListener('DOMContentLoaded', function () {
   var conn = chrome.extension.connect({name: 'AddQRcode'});
   var bg = chrome.extension.getBackgroundPage();
-  var $base64img = '';
-
-  // 从缓存中读取内容
-  var __DB__ = JSON.parse(bg.localStorage.getItem('__QrCodeDb__') || '{}');
-  if (__DB__.action === 'store') {
-    $('#qrfileinput').val(__DB__.$qrfileinput);
-    $('#qrwidth').val(__DB__.$qrwidth) || 200;
-    $('#qrmargin').val(__DB__.$qrmargin) || 40;
-    $('#qrpos').val(__DB__.$qrpos) || 4;
-    $('#qrlink').val(__DB__.$qrlink);
-    $('#qrleft').val(__DB__.$qrleft);
-    $('#qrtop').val(__DB__.$qrtop);
-    $('.custom-pos-group')[+$('#qrpos').val() === 6 ? 'show' : 'hide']();
-    $('.qr-margin-group')[+$('#qrpos').val() === 6 ? 'hide' : 'show']();
-
-    // 恢复图片
-    if (__DB__.$base64img) {
-      $base64img = __DB__.$base64img;
-      renderImage(__DB__.$base64img);
-    }
-  }
 
   // 渲染图片
-  function renderImage(result) {
-    // 更新缓存
+  // 更新缓存 + 绘制底图 + 绘制二维码
+  function renderImage(base64Img) {
     refreshCache();
-
     var canvas = document.createElement('canvas');
     var ctx = canvas.getContext('2d');
     var img = new Image();
-    img.src = result;
+    img.src = base64Img;
     img.onload = function () { // 绘制底图
       canvas.width = img.width;
       canvas.height = img.height;
@@ -44,8 +22,7 @@ document.addEventListener('DOMContentLoaded', function () {
       };
 
       // 绘制二维码
-      var storeData = getStoreData();
-      // $qrlink 二维码链接
+      var storeData = getQrCodeData();
       if (!storeData.$qrlink) {
         return;
       }
@@ -95,53 +72,23 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  // 渲染
-  function render() {
-    var $qrfile = $('#qrfile').prop('files')[0];
-    if ($qrfile) {
-      var reader = new FileReader();
-      reader.readAsDataURL($qrfile);
-      reader.onload = function(e){
-        $base64img = this.result;
-        renderImage(this.result);
-      }
-    } else if ($base64img) {
-      renderImage($base64img);
-    }
-  }
-
   // 获取要缓存的数据
-  function getStoreData(action) {
+  function getQrCodeData() {
     return {
-      action: action || 'store',
-      $base64img: $base64img || '',
-      $qrfileinput: $('#qrfileinput').val() || '',
+      $qrbase64: $('#qrbase64').val() || '',
+      $qrfilepath: $('#qrfilepath').val() || '',
       $qrwidth : +$('#qrwidth').val() || 200,
       $qrmargin : +$('#qrmargin').val() || 40,
       $qrpos : +$('#qrpos').val() || 4,
       $qrlink : $('#qrlink').val() || '',
-      $qrleft: $('#qrleft').val() || 0,
-      $qrtop: $('#qrtop').val() || 0
+      $qrleft: +$('#qrleft').val() || 0,
+      $qrtop: +$('#qrtop').val() || 0
     };
   }
 
-  // 更新缓存
-  function refreshCache(action) {
-    conn.postMessage(getStoreData(action));
-  }
-
-  // 上传文件
-  $('.btn-upload').click(function(evt) {
-    evt.preventDefault();
-    $('#qrfile').click();
-  });
-
-  // 重置
-  $('.btn-reset').click(function(evt) {
-    evt.preventDefault();
-
-    // reset
-    $('#qrfileinput').val('');
+  // 重置数据
+  function resetQrCodeData() {
+    $('#qrfilepath').val('');
     $('#qrwidth').val(200);
     $('#qrmargin').val(40);
     $('#qrpos').val(4);
@@ -149,7 +96,60 @@ document.addEventListener('DOMContentLoaded', function () {
     $('#preview').attr('src', '');
     $('#qrtop').val(0);
     $('#qrleft').val(0);
-    $base64img = '';
+    $('#qrbase64').val('');
+  }
+
+  // 更新缓存
+  function refreshCache() {
+    conn.postMessage(getQrCodeData());
+  }
+
+  // 渲染
+  function run() {
+    var $qrfilewrap = $('#qrfilewrap').prop('files')[0];
+    if ($qrfilewrap) {
+      var reader = new FileReader();
+      reader.readAsDataURL($qrfilewrap);
+      reader.onload = function(e){
+        $('#qrbase64').val(this.result);
+        renderImage(this.result);
+      }
+    } else if ($('#qrbase64').val()) {
+      renderImage($('#qrbase64').val());
+    }
+  }
+
+  // 从缓存中读取内容
+  var store = JSON.parse(bg.localStorage.getItem('__QrCodeDb__') || '{}');
+  $('#qrfilepath').val(store.$qrfilepath);
+  $('#qrwidth').val(store.$qrwidth || 200);
+  $('#qrmargin').val(store.$qrmargin  || 40);
+  $('#qrpos').val(store.$qrpos || 4);
+  $('#qrlink').val(store.$qrlink || '');
+  $('#qrleft').val(store.$qrleft || 0);
+  $('#qrtop').val(store.$qrtop || 0);
+  $('#qrbase64').val(store.$qrbase64 || '');
+  $('.custom-pos-group')[+$('#qrpos').val() === 6 ? 'show' : 'hide']();
+  if ([5, 6].indexOf(+$('#qrpos').val()) > -1) {
+    $('.qr-margin-group').hide();
+  } else {
+    $('.qr-margin-group').show();
+  }
+
+  if (store.$qrbase64) {
+    renderImage(store.$qrbase64);
+  }
+
+  // 上传文件
+  $('.btn-upload').click(function(evt) {
+    evt.preventDefault();
+    $('#qrfilewrap').click();
+  });
+
+  // 重置
+  $('.btn-reset').click(function(evt) {
+    evt.preventDefault();
+    resetQrCodeData();
 
     // 更新缓存
     setTimeout(function() {
@@ -158,9 +158,9 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   // 上传完成
-  $('#qrfile').change(function(evt) {
+  $('#qrfilewrap').change(function(evt) {
     if (evt.target.value) {
-      $('#qrfileinput').val(evt.target.value);
+      $('#qrfilepath').val(evt.target.value);
     }
   });
 
@@ -179,14 +179,14 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   // watch
-  $('#qrfile, #qrpos, #qrwidth, #qrmargin, #qrleft, #qrtop').change(function(evt) {
+  $('#qrfilewrap, #qrpos, #qrwidth, #qrmargin, #qrleft, #qrtop').change(function(evt) {
     $('.custom-pos-group')[+$('#qrpos').val() === 6 ? 'show' : 'hide']();
     $('.qr-margin-group')[+$('#qrpos').val() === 6 ? 'hide' : 'show']();
-    render();
+    run();
   });
 
   // watch
   $('#qrlink, #qrwidth, #qrmargin, #qrleft, #qrtop').keyup(function(evt) {
-    render();
+    run();
   });
 });
