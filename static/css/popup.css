@@ -1,5 +1,5 @@
 body {
-  width: 426px;
+  width: 450px;
 }
 #content {
   padding: 30px;
@@ -12,7 +12,7 @@ body {
 
 .form-group .form-label {
   display: inline-block;
-  width: 90px;
+  width: 110px;
 }
 
 .btn {
