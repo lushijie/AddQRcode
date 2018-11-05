@@ -1,75 +1,79 @@
 document.addEventListener('DOMContentLoaded', function () {
   var conn = chrome.extension.connect({name: 'AddQRcode'});
   var bg = chrome.extension.getBackgroundPage();
+  var imgWidth = 0;
+  var imgHeight = 0;
+  var canvas = document.createElement('canvas');
+  var ctx = canvas.getContext('2d');
 
-  // 渲染图片
-  // 更新缓存 + 绘制底图 + 绘制二维码
-  function renderImage(base64Img) {
+  // 渲染底图
+  function drawBgImage(base64Img) {
     refreshCache();
-    var canvas = document.createElement('canvas');
-    var ctx = canvas.getContext('2d');
     var img = new Image();
-    img.src = base64Img;
+    img.src = base64Img || $('#qrbase64').val();
     img.onload = function () { // 绘制底图
-      canvas.width = img.width;
-      canvas.height = img.height;
+      canvas.width = imgWidth = img.width;
+      canvas.height = imgHeight = img.height;
       ctx.drawImage(img, 0, 0, img.width, img.height);
       $('#preview').attr('src', canvas.toDataURL('image/png'));
-
-      var pos = {
-        x: 0,
-        y: 0
-      };
-
-      // 绘制二维码
-      var storeData = getQrCodeData();
-      if (!storeData.$qrlink) {
-        return;
-      }
-
-      // $qrwidth 二维码尺寸
-      // $qrmagin 二维码边距
-      const distance = storeData.$qrwidth + storeData.$qrmargin;
-      switch (storeData.$qrpos) {
-        case 1: // 左上角
-          pos.x = storeData.$qrmargin;
-          pos.y = storeData.$qrmargin;
-        break;
-        case 2: // 右上角
-          pos.x = canvas.width - distance;
-          pos.y = storeData.$qrmargin;
-        break;
-        case 3: // 左下角
-          pos.x = storeData.$qrmargin;
-          pos.y = canvas.height - distance;
-        break;
-        case 4: // 右下角
-          pos.x = canvas.width - distance;
-          pos.y = canvas.height - distance;
-        break;
-        case 5: // 居中
-          pos.x = canvas.width/2 - +storeData.$qrwidth/2;
-          pos.y = canvas.height/2 - +storeData.$qrwidth/2;
-        break;
-        case 6: // 自定义
-          pos.x = storeData.$qrleft;
-          pos.y = storeData.$qrtop;
-        break;
-      }
-
-      QRCode.toDataURL(storeData.$qrlink, { // 生成二维码
-        width: storeData.$qrwidth,
-        margin: 2
-      }).then(dataURL => {  // 绘制二维码到canvas
-        var img2 = new Image();
-        img2.src = dataURL;
-        img2.setAttribute('crossOrigin','Anonymous');
-        img2.onload = function() {
-          ctx.drawImage(img2, pos.x, pos.y);
-          $('#preview').attr('src', canvas.toDataURL('image/png'));
-        }
-      });
+      drawQrImage();
     }
+  }
+
+  // 渲染二维码
+  function drawQrImage() {
+    refreshCache();
+
+
+    // 绘制二维码
+    var storeData = getQrCodeData();
+    if (!storeData.$qrlink) {
+      return;
+    }
+    var pos = {
+      x: 0,
+      y: 0
+    };
+    const distance = storeData.$qrwidth + storeData.$qrmargin;
+    switch (storeData.$qrpos) {
+      case 1: // 左上角
+        pos.x = storeData.$qrmargin;
+        pos.y = storeData.$qrmargin;
+      break;
+      case 2: // 右上角
+        pos.x = imgWidth - distance;
+        pos.y = storeData.$qrmargin;
+      break;
+      case 3: // 左下角
+        pos.x = storeData.$qrmargin;
+        pos.y = imgHeight - distance;
+      break;
+      case 4: // 右下角
+        pos.x = imgWidth - distance;
+        pos.y = imgHeight - distance;
+      break;
+      case 5: // 居中
+        pos.x = imgWidth / 2 - +storeData.$qrwidth / 2;
+        pos.y = imgHeight / 2 - +storeData.$qrwidth / 2;
+      break;
+      case 6: // 自定义
+        pos.x = storeData.$qrleft;
+        pos.y = storeData.$qrtop;
+      break;
+    }
+
+    QRCode.toDataURL(storeData.$qrlink, { // 生成二维码
+      width: storeData.$qrwidth,
+      margin: 2
+    }).then(dataURL => {  // 绘制二维码到canvas
+      var img2 = new Image();
+      img2.src = dataURL;
+      img2.setAttribute('crossOrigin','Anonymous');
+      img2.onload = function() {
+        ctx.drawImage(img2, pos.x, pos.y);
+        $('#preview').attr('src', canvas.toDataURL('image/png'));
+      }
+    });
   }
 
   // 获取要缓存的数据
@@ -105,17 +109,17 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // 渲染
-  function run() {
+  function renderFromFile() {
     var $qrfilewrap = $('#qrfilewrap').prop('files')[0];
     if ($qrfilewrap) {
       var reader = new FileReader();
       reader.readAsDataURL($qrfilewrap);
       reader.onload = function(e){
         $('#qrbase64').val(this.result);
-        renderImage(this.result);
+        drawBgImage(this.result);
       }
     } else if ($('#qrbase64').val()) {
-      renderImage($('#qrbase64').val());
+      drawBgImage($('#qrbase64').val());
     }
   }
 
@@ -137,7 +141,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   if (store.$qrbase64) {
-    renderImage(store.$qrbase64);
+    drawBgImage(store.$qrbase64);
   }
 
   // 上传文件
@@ -179,14 +183,25 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   // watch
-  $('#qrfilewrap, #qrpos, #qrwidth, #qrmargin, #qrleft, #qrtop').change(function(evt) {
+  $('#qrpos').change(function(evt) {
     $('.custom-pos-group')[+$('#qrpos').val() === 6 ? 'show' : 'hide']();
     $('.qr-margin-group')[+$('#qrpos').val() === 6 ? 'hide' : 'show']();
-    run();
+  });
+
+  // watch
+  $('#qrfilewrap').change(function(evt) {
+    renderFromFile();
+  });
+
+  // watch
+  $('#qrpos, #qrwidth, #qrmargin, #qrleft, #qrtop').change(function(evt) {
+    console.log('change...');
+    drawBgImage();
   });
 
   // watch
   $('#qrlink, #qrwidth, #qrmargin, #qrleft, #qrtop').keyup(function(evt) {
-    run();
+    console.log('keyup...');
+    drawQrImage();
   });
 });
