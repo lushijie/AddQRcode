@@ -22,9 +22,9 @@ body {
   width: 60px;
 }
 
-#preview {
+#preview1 {
   box-shadow: 0px 2px 12px #555;
-  max-width: 300px;
+  max-width: 400px;
 }
 
 input, select {

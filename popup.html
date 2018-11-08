@@ -12,15 +12,17 @@
       <li class="form-group">
         <span class="form-label">背景图</span>
         <span class="form-item">
+          <input id="qrbase64" value="" style='position: absolute; visibility: hidden;'>
+          <input id="qrfile" type="file" style='position: absolute; visibility: hidden;'/>
+
           <input id="qrfilepath" type="text" value="" readonly>
           <button class="btn btn-upload">上传</button>
-          <input id="qrfilewrap" type="file" style='position: absolute; visibility: hidden;'/>
         </span>
       </li>
 
       <li class="form-group">
         <span class="form-label">二维码链接</span>
-        <span class="form-item"> <input id="qrlink" type="text" required> </span>
+        <span class="form-item"> <input id="qrlink" type="text"> </span>
       </li>
 
       <li class="form-group">
@@ -49,17 +51,12 @@
 
       <li class="form-group">
         <span class="form-label">二维码尺寸</span>
-        <span class="form-item"> <input id="qrwidth" type="number" step="10" min="30" value="200" required> </span>
+        <span class="form-item"> <input id="qrwidth" type="number" step="10" min="10" value="200" required> </span>
       </li>
 
       <li class="form-group qr-margin-group">
         <span class="form-label">二维码边距</span>
-        <span class="form-item"> <input id="qrmargin" type="number" step="10" value="40" required> </span>
-      </li>
-
-      <li class="form-group" style="display: none;">
-        <span class="form-label">二维码base64img</span>
-        <span class="form-item"> <input id="qrbase64" value=""> </span>
+        <span class="form-item"> <input id="qrmargin" type="number" min="0" step="10" value="40" required> </span>
       </li>
     </ul>
 
@@ -68,7 +65,8 @@
       <input class="btn btn-reset" type="submit" value="重置" />
     </div>
 
-    <img id="preview" src="" alt="">
+    <img id="preview1" src="" alt="">
+    <img id="preview2" src="" alt="" style="display: none;">  <!-- 实际大小 -->
   </form>
 </div>
 </body>
