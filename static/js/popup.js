@@ -1,40 +1,43 @@
 document.addEventListener('DOMContentLoaded', function () {
-  var conn = chrome.extension.connect({name: 'AddQRcode'});
-  var bg = chrome.extension.getBackgroundPage();
-  var imgWidth = 0;
-  var imgHeight = 0;
+  // 浏览器环境
+  var conn = {
+    postMessage: function(data) {
+      window.localStorage.setItem('__QrCodeDb__', JSON.stringify(data));
+    }
+  };
+  var bg = window;
+
+  // chrome 插件环境
+  if (window.AppView) {
+    conn = chrome.extension.connect({name: 'AddQRcode'});
+    bg = chrome.extension.getBackgroundPage();
+  }
+
   var canvas = document.createElement('canvas');
   var ctx = canvas.getContext('2d');
 
   // 渲染底图
   function drawBgImage(base64Img) {
+    // 更新缓存
     refreshCache();
+
     var img = new Image();
     img.src = base64Img || $('#qrbase64').val();
     img.onload = function () { // 绘制底图
-      canvas.width = imgWidth = img.width;
-      canvas.height = imgHeight = img.height;
+      canvas.width = img.width;
+      canvas.height = img.height;
       ctx.drawImage(img, 0, 0, img.width, img.height);
       $('#preview').attr('src', canvas.toDataURL('image/png'));
-      drawQrImage();
+      // drawQrImage();
     }
   }
 
-  // 渲染二维码
-  function drawQrImage() {
-    refreshCache();
-
-
-    // 绘制二维码
-    var storeData = getQrCodeData();
-    if (!storeData.$qrlink) {
-      return;
-    }
-    var pos = {
-      x: 0,
-      y: 0
-    };
+  // 计算二维码位置
+  function caclPos(storeData) {
+    var pos = { x: 0, y: 0 };
     const distance = storeData.$qrwidth + storeData.$qrmargin;
+    const imgWidth = $('#preview').width();
+    const imgHeight = $('#preview').height();
     switch (storeData.$qrpos) {
       case 1: // 左上角
         pos.x = storeData.$qrmargin;
@@ -61,16 +64,21 @@ document.addEventListener('DOMContentLoaded', function () {
         pos.y = storeData.$qrtop;
       break;
     }
+    return pos;
+  }
 
-    QRCode.toDataURL(storeData.$qrlink, { // 生成二维码
-      width: storeData.$qrwidth,
+  // 渲染二维码
+  function drawQrImage(linkText, qrSize, position) {
+    // 生成二维码并绘制
+    QRCode.toDataURL(linkText, {
+      width: qrSize,
       margin: 2
-    }).then(dataURL => {  // 绘制二维码到canvas
+    }).then(dataURL => {
       var img2 = new Image();
       img2.src = dataURL;
       img2.setAttribute('crossOrigin','Anonymous');
       img2.onload = function() {
-        ctx.drawImage(img2, pos.x, pos.y);
+        ctx.drawImage(img2, position.x, position.y);
         $('#preview').attr('src', canvas.toDataURL('image/png'));
       }
     });
@@ -123,27 +131,37 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  // 从缓存中读取内容
-  var store = JSON.parse(bg.localStorage.getItem('__QrCodeDb__') || '{}');
-  $('#qrfilepath').val(store.$qrfilepath);
-  $('#qrwidth').val(store.$qrwidth || 200);
-  $('#qrmargin').val(store.$qrmargin  || 40);
-  $('#qrpos').val(store.$qrpos || 4);
-  $('#qrlink').val(store.$qrlink || '');
-  $('#qrleft').val(store.$qrleft || 0);
-  $('#qrtop').val(store.$qrtop || 0);
-  $('#qrbase64').val(store.$qrbase64 || '');
-  $('.custom-pos-group')[+$('#qrpos').val() === 6 ? 'show' : 'hide']();
-  if ([5, 6].indexOf(+$('#qrpos').val()) > -1) {
-    $('.qr-margin-group').hide();
-  } else {
-    $('.qr-margin-group').show();
+  // 根据 store 设置页面上的元素值
+  function setDomValue(store) {
+    $('#qrfilepath').val(store.$qrfilepath);
+    $('#qrwidth').val(store.$qrwidth || 200);
+    $('#qrmargin').val(store.$qrmargin  || 40);
+    $('#qrpos').val(store.$qrpos || 4);
+    $('#qrlink').val(store.$qrlink || '');
+    $('#qrleft').val(store.$qrleft || 0);
+    $('#qrtop').val(store.$qrtop || 0);
+    $('#qrbase64').val(store.$qrbase64 || '');
+    $('.custom-pos-group')[+$('#qrpos').val() === 6 ? 'show' : 'hide']();
+    if ([5, 6].indexOf(+$('#qrpos').val()) > -1) {
+      $('.qr-margin-group').hide();
+    } else {
+      $('.qr-margin-group').show();
+    }
   }
 
+  // 从缓存中读取内容
+  var store = JSON.parse(bg.localStorage.getItem('__QrCodeDb__') || '{}');
+  setDomValue(store);
   if (store.$qrbase64) {
     drawBgImage(store.$qrbase64);
   }
+  if (store.$qrlink) {
+    drawQrImage(store.$qrlink, store.$qrwidth, caclPos(store));
+  }
 
+
+
+  // -------- event ---------
   // 上传文件
   $('.btn-upload').click(function(evt) {
     evt.preventDefault();
@@ -195,13 +213,24 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // watch
   $('#qrpos, #qrwidth, #qrmargin, #qrleft, #qrtop').change(function(evt) {
-    console.log('change...');
     drawBgImage();
   });
 
   // watch
-  $('#qrlink, #qrwidth, #qrmargin, #qrleft, #qrtop').keyup(function(evt) {
-    console.log('keyup...');
-    drawQrImage();
+  $('#qrwidth, #qrmargin, #qrleft, #qrtop').keyup(function(evt) {
+    // drawQrImage();
   });
+
+  // $('#qrlink').on('keyup change', function(e) {
+  //   var storeData = getQrCodeData();
+  //   if (storeData.$qrlink) {
+  //     QRCode.toDataURL(storeData.$qrlink, { // 生成二维码
+  //       width: storeData.$qrwidth,
+  //       margin: 2
+  //     }).then(dataURL => {  // 绘制二维码到canvas
+  //       qrLink = dataURL;
+  //       drawQrImage();
+  //     });
+  //   }
+  // });
 });
