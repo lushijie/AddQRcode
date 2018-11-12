@@ -5,12 +5,9 @@
 	"description": "Add QRcode to image",
 	"background": {
     "scripts": [
-      "static/js/lib/vue.min.js",
+      "static/js/lib/jquery-2.0.0.min.js",
       "static/js/background.js"
     ]
-  },
-  "sandbox": {
-    "pages": ["popup.html"]
   },
 	"homepage_url":"https://lushijie.github.io/AddQRcode/popup.html",
 	"icons":{
@@ -36,8 +33,7 @@
 	"content_scripts":[{
 		"matches":["*://*/*"],
 		"js":[
-      "static/js/lib/vue.min.js",
-      "static/js/lib/qrcode.min.js",
+      "static/js/lib/jquery-2.0.0.min.js",
       "static/js/content_script.js"
     ],
 		"css":[],

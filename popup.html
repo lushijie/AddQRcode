@@ -1,182 +1,86 @@
 ﻿<!DOCTYPE html>
 <html>
-	<head>
-		<title>AddQRcode</title>
-		<link rel="stylesheet" href="static/css/reset.css" />
+  <head>
+    <title>AddQRcode</title>
+    <link rel="stylesheet" href="static/css/reset.css" />
     <link rel="stylesheet" href="static/css/popup.css">
-	</head>
+  </head>
 <body>
-<div id="app">
-  <ul>
-    <li class="form-group">
-      <span class="form-label">底图</span>
-      <span class="form-item">
-        <input id="qrfile" type="text" v-model="qrfile" readonly>
-        <button class="btn btn-upload" @click.prevent="upload">上传</button>
-        <input
-          id="imgfile"
-          type="file"
-          v-model="qrfile"
-          style='position: absolute; visibility: hidden;'
-        />
-      </span>
-    </li>
+<div id="content">
+  <form clsss="form-container">
+    <ul>
+      <li class="form-group">
+        <span class="form-label">背景图</span>
+        <span class="form-item">
+          <input id="qrbase64" value="" style='position: absolute; visibility: hidden;'>
+          <input id="qrfile" type="file" style='position: absolute; visibility: hidden;'/>
 
-    <li class="form-group">
-      <span class="form-label">二维码链接</span>
-      <span class="form-item">
-        <input id="qrlink" type="text" v-model="qrlink">
-      </span>
-    </li>
+          <input id="filePath" type="text" value="" readonly>
+          <button class="btn btn-upload">上传</button>
+        </span>
+      </li>
 
-    <li class="form-group">
-      <span class="form-label">二维码位置</span>
-      <span class="form-item">
-        <select id="qrpos" v-model="qrpos">
-          <option value="1">左上角</option>
-          <option value="2">右上角</option>
-          <option value="3">左下角</option>
-          <option value="4" selected>右下角</option>
-          <option value="5">居中</option>
-        </select>
-      </span>
-    </li>
+      <li class="form-group">
+        <span class="form-label">二维码链接</span>
+        <span class="form-item"> <input id="qrText" type="text"> </span>
+      </li>
 
-    <li class="form-group">
-      <span class="form-label">二维码尺寸</span>
-      <span class="form-item">
-        <input id="qrwidth" type="number" v-model="qrwidth" />
-      </span>
-    </li>
+      <li class="form-group">
+        <span class="form-label">二维码位置</span>
+        <span class="form-item">
+          <select id="qrPosStyle" name="" id="">
+            <option value="1">左上角</option>
+            <option value="2">右上角</option>
+            <option value="3">左下角</option>
+            <option value="4" selected>右下角</option>
+            <option value="5">居中</option>
+            <option value="6">自定义位置</option>
+          </select>
+        </span>
+      </li>
 
-    <li class="form-group">
-      <span class="form-label">二维码边距</span>
-      <span class="form-item">
-        <input id="qrmargin" type="number" v-model="qrmargin">
-      </span>
-    </li>
-  </ul>
+      <li class="form-group">
+        <span class="form-label">二维码尺寸</span>
+        <span class="form-item"> <input id="qrWidth" type="number" step="10" min="70" value="200" required> </span>
+      </li>
 
-  <div style="margin-bottom: 20px;">
-    <button class="btn btn-download" @click.prevent="download"> 下载 </button>
-  </div>
+      <li class="form-group custom-pos-group">
+        <span class="form-label">二维码距左位置</span>
+        <span class="form-item"> <input id="qrLeft" type="number" min="0" value="0" step="10" required> </span>
+      </li>
 
-  <img id="preview" src="" alt="">
+      <li class="form-group custom-pos-group">
+        <span class="form-label">二维码距顶位置</span>
+        <span class="form-item"> <input id="qrTop" type="number" min="0" value="0" step="10" required> </span>
+      </li>
+
+      <li class="form-group qr-margin-group">
+        <span class="form-label">二维码边距</span>
+        <span class="form-item"> <input id="qrMargin" type="number" min="0" step="10" value="40" required> </span>
+      </li>
+    </ul>
+
+    <div>
+      <input class="btn btn-download" type="submit" value="下载" />
+      <input class="btn btn-reset" type="submit" value="重置" />
+    </div>
+
+    <div class="tips">
+      <!--  -->
+    </div>
+
+    <div class="img-container">
+      <img id="backImage" src="" alt="">
+      <img id="frontImage" src="" alt="">
+
+      <img id="backImageOrigin" src="" alt="" style="display: none;">
+      <img id="frontImageOrigin" src="" alt="" style="display: none;">
+      <img id="downloadImage" src="" alt="" style="display: none;">
+    </div>
+  </form>
 </div>
 </body>
-<script src="static/js/lib/vue.min.js"></script>
+<script src="static/js/lib/jquery-2.0.0.min.js"></script>
 <script src="static/js/lib/qrcode.min.js"></script>
-<script>
-  var app = new Vue({
-    el: '#app',
-    data() {
-      return {
-        qrfile: '',
-        qrlink: '',
-        qrpos: 4,
-        qrwidth: 200,
-        qrmargin: 40,
-        qrpadding: 2
-      }
-    },
-
-    watch: {
-      $data: {
-        handler: function (val, oldVal) {
-          this.renderImage();
-          // conn.postMessage(JSON.stringify(val));
-        },
-        deep: true
-      }
-    },
-
-    methods: {
-      upload() {
-        document.querySelector('#imgfile').click();
-      },
-
-      download() {
-        var downloadURL = document.getElementById('preview').getAttribute('src');
-        if (downloadURL) {
-          var downloadFile = document.createElement('a');
-          downloadFile.setAttribute('href', downloadURL);
-          downloadFile.setAttribute('download', 'img.jpg');
-          document.getElementsByTagName('body')[0].appendChild(downloadFile);
-          downloadFile.click();
-          document.getElementsByTagName('body')[0].removeChild(downloadFile);
-        }
-      },
-
-      merge() {
-        this.renderImage();
-      },
-
-      renderImage() {
-        var self = this;
-        var canvas = document.createElement('canvas');
-        var ctx = canvas.getContext('2d');
-        var reader = new FileReader();
-        var targetfile = document.getElementById('imgfile').files[0];
-        if (targetfile) {
-          reader.readAsDataURL(targetfile);
-          reader.onload = function(e){
-            var img = new Image();
-            img.src = this.result;
-            img.onload = function () { // 绘制底图
-              canvas.width = img.width;
-              canvas.height = img.height;
-              ctx.drawImage(img, 0, 0, img.width, img.height);
-              document.getElementById('preview').setAttribute('src', canvas.toDataURL('image/png'));
-
-              if (self.qrlink) {
-                var pos = {
-                  x: 0,
-                  y: 0
-                };
-
-                const distance = (+self.qrwidth) + (+self.qrmargin);
-                switch (+self.qrpos) {
-                  case 1:
-                    pos.x = self.qrmargin;
-                    pos.y = self.qrmargin;
-                  break;
-                  case 2:
-                    pos.x = canvas.width - distance;
-                    pos.y = self.qrmargin;
-                  break;
-                  case 3:
-                    pos.x = self.qrmargin;
-                    pos.y = canvas.height - distance;
-                  break;
-                  case 4:
-                    pos.x = canvas.width - distance;
-                    pos.y = canvas.height - distance;
-                  break;
-                  case 5:
-                    pos.x = canvas.width/2 - self.qrwidth/2;
-                    pos.y = canvas.height/2 - self.qrwidth/2;
-                  break;
-                };
-
-                QRCode.toDataURL(self.qrlink, { // 生成二维码
-                  width: self.qrwidth,
-                  margin: self.qrpadding
-                }).then(dataURL => {  // 绘制二维码到canvas
-                  var img2 = new Image();
-                  img2.src = dataURL;
-                  img2.setAttribute('class', 'preload-img');
-                  img2.setAttribute('crossOrigin','Anonymous');
-                  img2.onload = function() {
-                    ctx.drawImage(img2, pos.x, pos.y);
-                    document.getElementById('preview').setAttribute('src', canvas.toDataURL('image/png'));
-                  }
-                });
-              } // end self.qrlink
-            }
-          }
-        }
-      }
-    }
-  });
-</script>
+<script src="static/js/popup.js"></script>
 </html>
