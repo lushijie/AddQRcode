@@ -1,19 +1,19 @@
 var DEFAULT = {
   dbName: '__QR_DB__',
-  scale: 1,
-  qrText: '',
-  qrWidth: 100,
-  qrMargin: 40,
-  qrPosStyle: 4,
-  qrLeft: 0,
-  qrTop: 0,
+  qrText: '', // 二维码文案
+  qrWidth: 100, // 二维码大小
+  qrMargin: 40, // 二维码距离图片边沿的距离
+  qrPosStyle: 4, // 二维码位置类型
+  qrLeft: 0, // 二维码距离左侧距离
+  qrTop: 0, // 二维码距离顶部距离
 
-  filePath: '',
-  backImage: '',
-  backImageWidth: -1,
-  backImageHeight: -1,
-  frontImage: '',
-  frontImageOrigin: '',
+  scale: 1, // 当前缩放比例
+  filePath: '', // 背景图文件地址
+  backImage: '', // 背景图base64
+  backImageWidth: -1, // 背景图初始宽度
+  backImageHeight: -1, // 背景图初始高度
+  frontImage: '', // scale 对应的二维码大小
+  frontImageOrigin: '', // 实际二维码大小
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -103,9 +103,12 @@ document.addEventListener('DOMContentLoaded', function () {
           $('#qrWidth').val(value);
           DATA.qrWidth = value;
           updateStorage(DATA);
+
           if (DATA.qrText) {
             genQrCode(value, DATA.qrText);
           }
+
+          calcPosition(true);
         },
         enumerable: true
       },
@@ -115,8 +118,9 @@ document.addEventListener('DOMContentLoaded', function () {
         },
         set: function(value) {
           $('#qrMargin').val(value);
-          DATA.qrMargin = value;
+          DATA.qrMargin = +value;
           updateStorage(DATA);
+          calcPosition(true);
         },
         enumerable: true
       },
@@ -125,8 +129,8 @@ document.addEventListener('DOMContentLoaded', function () {
           return +DATA.qrPosStyle;
         },
         set: function(value) {
-          $('#qrPosStyle').val(value);
-          DATA.qrPosStyle = value;
+          $('#qrPosStyle').val(+value);
+          DATA.qrPosStyle = +value;
 
           $('.custom-pos-group')[+value === 6 ? 'show' : 'hide']();
           if ([5, 6].indexOf(+value) > -1) {
@@ -136,6 +140,7 @@ document.addEventListener('DOMContentLoaded', function () {
           }
 
           updateStorage(DATA);
+          calcPosition(true);
         },
         enumerable: true
       },
@@ -147,6 +152,8 @@ document.addEventListener('DOMContentLoaded', function () {
           $('#qrLeft').val(value);
           DATA.qrLeft = value;
           updateStorage(DATA);
+
+          calcPosition(true);
         },
         enumerable: true
       },
@@ -158,6 +165,8 @@ document.addEventListener('DOMContentLoaded', function () {
           $('#qrTop').val(value);
           DATA.qrTop = value;
           updateStorage(DATA);
+
+          calcPosition(true);
         },
         enumerable: true
       },
@@ -219,52 +228,74 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   window.local = new LocalData(Object.assign({}, DEFAULT, readStorage()));
+
   Object.keys(readStorage()).forEach(function(key) {
     local[key] = readStorage()[key];
   });
 
-  // 计算二维码虚拟位置
-  function calcPosition() {
+  function calcPosition(isPreview) {
+    var store = readStorage();
     var pos = { x: 0, y: 0 };
 
     // 实际宽高
-    const realBackImgWidth = DATA.backImageWidth;
-    const realBackImgHeight = DATA.backImageHeight;
-    const qrWidth = DATA.scale * DATA.qrWidth;
-    const qrMargin = DATA.scale * DATA.qrMargin;
-    const distance = qrWidth + qrMargin;
+    var backImageWidth = store.backImageWidth;
+    var backImageHeight = store.backImageHeight;
+    var qrWidth = store.qrWidth;
+    var qrMargin = store.qrMargin;
+    var qrLeft = store.qrLeft;
+    var qrTop = store.qrTop;
+    if (isPreview) {
+      qrWidth = store.scale * store.qrWidth;
+      qrMargin = store.scale * store.qrMargin;
 
-    switch (DATA.qrPosStyle) {
+      backImageWidth = store.scale * store.backImageWidth;
+      backImageHeight = store.scale * store.backImageHeight;
+
+      qrLeft = store.scale * store.qrLeft;
+      qrTop = store.scale * store.qrTop;
+    }
+    var distance = qrWidth + qrMargin;
+
+    switch (+store.qrPosStyle) {
       case 1: // 左上角
         pos.x = qrMargin;
         pos.y = qrMargin;
       break;
       case 2: // 右上角
-        pos.x = realBackImgWidth - distance;
+        pos.x = backImageWidth - distance;
         pos.y = qrMargin;
       break;
       case 3: // 左下角
         pos.x = qrMargin;
-        pos.y = realBackImgHeight - distance;
+        pos.y = backImageHeight - distance;
       break;
       case 4: // 右下角
-        pos.x = realBackImgWidth - distance;
-        pos.y = realBackImgHeight - distance;
+        pos.x = backImageWidth - distance;
+        pos.y = backImageHeight - distance;
       break;
       case 5: // 居中
-        pos.x = realBackImgWidth / 2 - +qrWidth / 2;
-        pos.y = realBackImgHeight / 2 - +qrWidth / 2;
+        pos.x = backImageWidth / 2 - +qrWidth / 2;
+        pos.y = backImageHeight / 2 - +qrWidth / 2;
       break;
       case 6: // 自定义
-        pos.x = DATA.qrLeft;
-        pos.y = DATA.qrTop;
+        pos.x = qrLeft;
+        pos.y =qrTop;
       break;
     }
 
-    return {
-      x: Math.min(DATA.scale * pos.x, DATA.scale * realBackImgWidth - distance),
-      y: Math.min(DATA.scale * pos.y, DATA.scale * realBackImgHeight - distance)
+    // 未上传图片时
+    if (store.backImageHeight === -1) {
+      pos = {
+        x: 0,
+        y: 0,
+      }
     }
+
+    if (isPreview) {
+      $('#frontImage').css({left: pos.x + 'px', top: pos.y + 'px'});
+    }
+
+    return pos;
   }
 
   // 构造二维码
@@ -308,14 +339,16 @@ document.addEventListener('DOMContentLoaded', function () {
       img.onload = function () {
         canvas.width = store.backImageWidth;
         canvas.height = store.backImageHeight;
-        ctx.drawImage(img, 0, 0, store.backImageWidth, store.backImageHeight);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
         setTimeout(function() {
           var img2 = new Image();
           img2.src = store.frontImageOrigin;
           img2.setAttribute('crossOrigin','Anonymous');
           img2.onload = function() {
-            ctx.drawImage(img2, store.qrLeft, store.qrTop);
+            var pos = calcPosition();
+            console.log(pos);
+            ctx.drawImage(img2, pos.x, pos.y);
 
             $('#downloadImage').attr('src', canvas.toDataURL('image/png'));
             var downloadURL = $('#downloadImage').attr('src');
@@ -365,12 +398,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 二维码
     $('#qrLeft, #qrTop, #qrMargin, #qrWidth').on('input', function(e) {
-      local[$(e.target).attr('id')] = e.target.value;
+      local[$(e.target).attr('id')] = +e.target.value;
     });
 
     // 二维码位置
     $('#qrPosStyle').on('change', function(e) {
-      local.qrPosStyle = e.target.value;
+      local.qrPosStyle = +e.target.value;
+      local.qrTop = 0;
+      local.qrLeft = 0;
     });
   }
 
