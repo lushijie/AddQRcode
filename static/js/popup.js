@@ -237,13 +237,14 @@ document.addEventListener('DOMContentLoaded', function () {
     var store = readStorage();
     var pos = { x: 0, y: 0 };
 
-    // 实际宽高
     var backImageWidth = store.backImageWidth;
     var backImageHeight = store.backImageHeight;
     var qrWidth = store.qrWidth;
     var qrMargin = store.qrMargin;
     var qrLeft = store.qrLeft;
     var qrTop = store.qrTop;
+
+    // 预览
     if (isPreview) {
       qrWidth = store.scale * store.qrWidth;
       qrMargin = store.scale * store.qrMargin;
@@ -291,6 +292,7 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     }
 
+    // 预览css设置
     if (isPreview) {
       $('#frontImage').css({left: pos.x + 'px', top: pos.y + 'px'});
     }
@@ -300,19 +302,26 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // 构造二维码
   function genQrCode(qrWidth, qrText) {
+    // 预览二维码
     QRCode.toDataURL(qrText, {
       width: +qrWidth * local.scale,
       margin: 2
     }).then(dataURL => {
       local.frontImage = dataURL;
+      if (+local.scale === 1) {
+        local.frontImageOrigin = dataURL;
+      }
     });
 
-    QRCode.toDataURL(qrText, {
-      width: +qrWidth,
-      margin: 2
-    }).then(dataURL => {
-      local.frontImageOrigin = dataURL;
-    });
+    // 最终二维码
+    if (+local.scale !== 1) {
+      QRCode.toDataURL(qrText, {
+        width: +qrWidth,
+        margin: 2
+      }).then(dataURL => {
+        local.frontImageOrigin = dataURL;
+      });
+    }
   }
 
   // 注册事件
@@ -347,7 +356,6 @@ document.addEventListener('DOMContentLoaded', function () {
           img2.setAttribute('crossOrigin','Anonymous');
           img2.onload = function() {
             var pos = calcPosition();
-            console.log(pos);
             ctx.drawImage(img2, pos.x, pos.y);
 
             $('#downloadImage').attr('src', canvas.toDataURL('image/png'));
@@ -361,7 +369,7 @@ document.addEventListener('DOMContentLoaded', function () {
               download.remove();
             }
           }
-        }, 30);
+        }, 10);
       }
     });
 
@@ -373,21 +381,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 上传文件完成
     $('#qrfile').change(function(evt) {
-      if (evt.target.value) {
-        local.filePath = evt.target.value;
-      }
+      local.filePath = evt.target.value;
+
       var $qrfile = $('#qrfile').prop('files')[0];
-      if ($qrfile) {
-        var reader = new FileReader();
-        reader.readAsDataURL($qrfile);
-        reader.onload = function(e){
-          local.backImage = this.result;
-          setTimeout(function() {
-            local.scale = $('#backImage').width() / $('#backImageOrigin').width();
-            local.backImageWidth = $('#backImageOrigin').width();
-            local.backImageHeight = $('#backImageOrigin').height();
-          }, 10);
-        }
+      var reader = new FileReader();
+      reader.readAsDataURL($qrfile);
+      reader.onload = function(e){
+        local.backImage = this.result;
+
+        // wait load
+        setTimeout(function() {
+          local.scale = $('#backImage').width() / $('#backImageOrigin').width();
+          local.backImageWidth = $('#backImageOrigin').width();
+          local.backImageHeight = $('#backImageOrigin').height();
+        }, 10);
       }
     });
 
@@ -403,9 +410,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 二维码位置
     $('#qrPosStyle').on('change', function(e) {
-      local.qrPosStyle = +e.target.value;
+      // 首先将可能存在自定义位置重置
       local.qrTop = 0;
       local.qrLeft = 0;
+
+      local.qrPosStyle = +e.target.value;
     });
   }
 
