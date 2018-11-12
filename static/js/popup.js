@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 预览css设置
     if (isPreview) {
-      $('#frontImage').css({left: pos.x + 'px', top: pos.y + 'px'});
+      $('#frontImage').css({left: Math.ceil(pos.x) + 'px', top: Math.ceil(pos.y) + 'px'});
     }
 
     return pos;
@@ -307,6 +307,9 @@ document.addEventListener('DOMContentLoaded', function () {
           return +DATA.qrMargin;
         },
         set: function(value) {
+          if (+DATA.backImageHeight != -1) {
+            value = Math.min(+DATA.backImageWidth - +DATA.qrWidth, +DATA.backImageHeight - +DATA.qrWidth, value);
+          }
           $('#qrMargin').val(value);
           DATA.qrMargin = +value;
           updateStorage(DATA);

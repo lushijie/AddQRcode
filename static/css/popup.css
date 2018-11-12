@@ -43,3 +43,9 @@ input, select {
 .img-container #frontImage {
   position: absolute;
 }
+
+.tips {
+  margin: 20px 0;
+  font-size: 12px;
+  color: #999;
+}
