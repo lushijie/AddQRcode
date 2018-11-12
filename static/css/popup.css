@@ -22,11 +22,24 @@ body {
   width: 60px;
 }
 
-#preview1 {
+
+
+input, select {
+  width: 200px;
+}
+
+.img-container {
+  position: relative;
+}
+
+.img-container #backImage {
+  position: absolute;
+  top: 0;
+  left: 0;
   box-shadow: 0px 2px 12px #555;
   max-width: 400px;
 }
 
-input, select {
-  width: 200px;
+.img-container #frontImage {
+  position: absolute;
 }
