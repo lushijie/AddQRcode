@@ -217,7 +217,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 二维码
     $('#qrLeft, #qrTop, #qrMargin, #qrWidth').on('input', function(e) {
-      local[$(e.target).attr('id')] = +e.target.value;
+      var value = +e.target.value;
+      local[$(e.target).attr('id')] = +value;
     });
 
     // 二维码位置
@@ -265,7 +266,7 @@ document.addEventListener('DOMContentLoaded', function () {
       },
       qrText: {
         get: function() {
-          return DATA.qrText || '';
+          return DATA.qrText;
         },
         set: function(value) {
           $('#qrText').val(value);
@@ -295,7 +296,9 @@ document.addEventListener('DOMContentLoaded', function () {
             genQrCode(value, DATA.qrText);
           }
 
-          calcPosition(true);
+          setTimeout(function() {
+            calcPosition(true);
+          }, 30);
         },
         enumerable: true
       },
@@ -307,7 +310,10 @@ document.addEventListener('DOMContentLoaded', function () {
           $('#qrMargin').val(value);
           DATA.qrMargin = +value;
           updateStorage(DATA);
-          calcPosition(true);
+
+          setTimeout(function() {
+            calcPosition(true);
+          }, 30);
         },
         enumerable: true
       },
@@ -318,6 +324,7 @@ document.addEventListener('DOMContentLoaded', function () {
         set: function(value) {
           $('#qrPosStyle').val(+value);
           DATA.qrPosStyle = +value;
+          updateStorage(DATA);
 
           $('.custom-pos-group')[+value === 6 ? 'show' : 'hide']();
           if ([5, 6].indexOf(+value) > -1) {
@@ -326,8 +333,9 @@ document.addEventListener('DOMContentLoaded', function () {
             $('.qr-margin-group').show();
           }
 
-          updateStorage(DATA);
-          calcPosition(true);
+          setTimeout(function() {
+            calcPosition(true);
+          }, 30);
         },
         enumerable: true
       },
@@ -340,7 +348,9 @@ document.addEventListener('DOMContentLoaded', function () {
           DATA.qrLeft = value;
           updateStorage(DATA);
 
-          calcPosition(true);
+          setTimeout(function() {
+            calcPosition(true);
+          }, 30);
         },
         enumerable: true
       },
@@ -353,7 +363,9 @@ document.addEventListener('DOMContentLoaded', function () {
           DATA.qrTop = value;
           updateStorage(DATA);
 
-          calcPosition(true);
+          setTimeout(function() {
+            calcPosition(true);
+          }, 30);
         },
         enumerable: true
       },
