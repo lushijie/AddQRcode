@@ -44,195 +44,7 @@ document.addEventListener('DOMContentLoaded', function () {
     conn.postMessage(store);
   }
 
-  function LocalData(DATA) {
-    Object.defineProperties(this, {
-      scale: {
-        get: function() {
-          return DATA.scale;
-        },
-        set: function(value) {
-          DATA.scale = value;
-          updateStorage(DATA);
-        },
-        enumerable: true
-      },
-      dbName: {
-        get: function() {
-          return DATA.dbName;
-        },
-        set: function() {
-          // todo
-        },
-        enumerable: true
-      },
-      filePath: {
-        get: function() {
-          return DATA.filePath || '';
-        },
-        set: function(value) {
-          DATA.filePath = value;
-          $('#filePath').val(value);
-          updateStorage(DATA);
-        },
-        enumerable: true
-      },
-      qrText: {
-        get: function() {
-          return DATA.qrText || '';
-        },
-        set: function(value) {
-          $('#qrText').val(value);
-          DATA.qrText = value;
-          updateStorage(DATA);
-          if (!value) {
-            $('#frontImage').attr('src', '');
-            return;
-          }
-          genQrCode(DATA.qrWidth, value);
-        },
-        enumerable: true
-      },
-      qrWidth: {
-        get: function() {
-          return +DATA.qrWidth;
-        },
-        set: function(value) {
-          if (+DATA.backImageHeight != -1) {
-            value = Math.min(+DATA.backImageWidth, +DATA.backImageHeight, value);
-          }
-          $('#qrWidth').val(value);
-          DATA.qrWidth = value;
-          updateStorage(DATA);
-
-          if (DATA.qrText) {
-            genQrCode(value, DATA.qrText);
-          }
-
-          calcPosition(true);
-        },
-        enumerable: true
-      },
-      qrMargin: {
-        get: function() {
-          return +DATA.qrMargin;
-        },
-        set: function(value) {
-          $('#qrMargin').val(value);
-          DATA.qrMargin = +value;
-          updateStorage(DATA);
-          calcPosition(true);
-        },
-        enumerable: true
-      },
-      qrPosStyle: {
-        get: function() {
-          return +DATA.qrPosStyle;
-        },
-        set: function(value) {
-          $('#qrPosStyle').val(+value);
-          DATA.qrPosStyle = +value;
-
-          $('.custom-pos-group')[+value === 6 ? 'show' : 'hide']();
-          if ([5, 6].indexOf(+value) > -1) {
-            $('.qr-margin-group').hide();
-          } else {
-            $('.qr-margin-group').show();
-          }
-
-          updateStorage(DATA);
-          calcPosition(true);
-        },
-        enumerable: true
-      },
-      qrLeft: {
-        get: function() {
-          return +DATA.qrLeft;
-        },
-        set: function(value) {
-          $('#qrLeft').val(value);
-          DATA.qrLeft = value;
-          updateStorage(DATA);
-
-          calcPosition(true);
-        },
-        enumerable: true
-      },
-      qrTop: {
-        get: function() {
-          return +DATA.qrTop;
-        },
-        set: function(value) {
-          $('#qrTop').val(value);
-          DATA.qrTop = value;
-          updateStorage(DATA);
-
-          calcPosition(true);
-        },
-        enumerable: true
-      },
-      backImage: {
-        get: function() {
-          return DATA.backImage || '';
-        },
-        set: function(value) {
-          $('#backImage').attr('src', value);
-          $('#backImageOrigin').attr('src', value);
-          DATA.backImage = value;
-          updateStorage(DATA);
-        },
-        enumerable: true
-      },
-      backImageWidth: {
-        get: function() {
-          return DATA.backImageWidth;
-        },
-        set: function(value) {
-          DATA.backImageWidth = value;
-          updateStorage(DATA);
-        },
-        enumerable: true
-      },
-      backImageHeight: {
-        get: function() {
-          return DATA.backImageHeight;
-        },
-        set: function(value) {
-          DATA.backImageHeight = value;
-          updateStorage(DATA);
-        },
-        enumerable: true
-      },
-      frontImage: {
-        get: function() {
-          return DATA.frontImage || '';
-        },
-        set: function(value) {
-          $('#frontImage').attr('src', value);
-          DATA.frontImage = value;
-          updateStorage(DATA);
-        },
-        enumerable: true
-      },
-      frontImageOrigin: {
-        get: function() {
-          return DATA.frontImageOrigin || '';
-        },
-        set: function(value) {
-          $('#frontImageOrigin').attr('src', value);
-          DATA.frontImageOrigin = value;
-          updateStorage(DATA);
-        },
-        enumerable: true
-      },
-    });
-  }
-
-  window.local = new LocalData(Object.assign({}, DEFAULT, readStorage()));
-
-  Object.keys(readStorage()).forEach(function(key) {
-    local[key] = readStorage()[key];
-  });
-
+  // 计算二维码位置
   function calcPosition(isPreview) {
     var store = readStorage();
     var pos = { x: 0, y: 0 };
@@ -417,6 +229,195 @@ document.addEventListener('DOMContentLoaded', function () {
       local.qrPosStyle = +e.target.value;
     });
   }
+
+  // 数据 watch
+  function LocalData(DATA) {
+    Object.defineProperties(this, {
+      scale: {
+        get: function() {
+          return DATA.scale;
+        },
+        set: function(value) {
+          DATA.scale = value;
+          updateStorage(DATA);
+        },
+        enumerable: true
+      },
+      dbName: {
+        get: function() {
+          return DATA.dbName;
+        },
+        set: function() {
+          // todo
+        },
+        enumerable: true
+      },
+      filePath: {
+        get: function() {
+          return DATA.filePath || '';
+        },
+        set: function(value) {
+          DATA.filePath = value;
+          $('#filePath').val(value);
+          updateStorage(DATA);
+        },
+        enumerable: true
+      },
+      qrText: {
+        get: function() {
+          return DATA.qrText || '';
+        },
+        set: function(value) {
+          $('#qrText').val(value);
+          DATA.qrText = value;
+          updateStorage(DATA);
+          if (!value) {
+            $('#frontImage').attr('src', '');
+            return;
+          }
+          genQrCode(DATA.qrWidth, value);
+        },
+        enumerable: true
+      },
+      qrWidth: {
+        get: function() {
+          return +DATA.qrWidth;
+        },
+        set: function(value) {
+          if (+DATA.backImageHeight != -1) {
+            value = Math.min(+DATA.backImageWidth, +DATA.backImageHeight, value);
+          }
+          $('#qrWidth').val(value);
+          DATA.qrWidth = value;
+          updateStorage(DATA);
+
+          if (DATA.qrText) {
+            genQrCode(value, DATA.qrText);
+          }
+
+          calcPosition(true);
+        },
+        enumerable: true
+      },
+      qrMargin: {
+        get: function() {
+          return +DATA.qrMargin;
+        },
+        set: function(value) {
+          $('#qrMargin').val(value);
+          DATA.qrMargin = +value;
+          updateStorage(DATA);
+          calcPosition(true);
+        },
+        enumerable: true
+      },
+      qrPosStyle: {
+        get: function() {
+          return +DATA.qrPosStyle;
+        },
+        set: function(value) {
+          $('#qrPosStyle').val(+value);
+          DATA.qrPosStyle = +value;
+
+          $('.custom-pos-group')[+value === 6 ? 'show' : 'hide']();
+          if ([5, 6].indexOf(+value) > -1) {
+            $('.qr-margin-group').hide();
+          } else {
+            $('.qr-margin-group').show();
+          }
+
+          updateStorage(DATA);
+          calcPosition(true);
+        },
+        enumerable: true
+      },
+      qrLeft: {
+        get: function() {
+          return +DATA.qrLeft;
+        },
+        set: function(value) {
+          $('#qrLeft').val(value);
+          DATA.qrLeft = value;
+          updateStorage(DATA);
+
+          calcPosition(true);
+        },
+        enumerable: true
+      },
+      qrTop: {
+        get: function() {
+          return +DATA.qrTop;
+        },
+        set: function(value) {
+          $('#qrTop').val(value);
+          DATA.qrTop = value;
+          updateStorage(DATA);
+
+          calcPosition(true);
+        },
+        enumerable: true
+      },
+      backImage: {
+        get: function() {
+          return DATA.backImage || '';
+        },
+        set: function(value) {
+          $('#backImage').attr('src', value);
+          $('#backImageOrigin').attr('src', value);
+          DATA.backImage = value;
+          updateStorage(DATA);
+        },
+        enumerable: true
+      },
+      backImageWidth: {
+        get: function() {
+          return DATA.backImageWidth;
+        },
+        set: function(value) {
+          DATA.backImageWidth = value;
+          updateStorage(DATA);
+        },
+        enumerable: true
+      },
+      backImageHeight: {
+        get: function() {
+          return DATA.backImageHeight;
+        },
+        set: function(value) {
+          DATA.backImageHeight = value;
+          updateStorage(DATA);
+        },
+        enumerable: true
+      },
+      frontImage: {
+        get: function() {
+          return DATA.frontImage || '';
+        },
+        set: function(value) {
+          $('#frontImage').attr('src', value);
+          DATA.frontImage = value;
+          updateStorage(DATA);
+        },
+        enumerable: true
+      },
+      frontImageOrigin: {
+        get: function() {
+          return DATA.frontImageOrigin || '';
+        },
+        set: function(value) {
+          $('#frontImageOrigin').attr('src', value);
+          DATA.frontImageOrigin = value;
+          updateStorage(DATA);
+        },
+        enumerable: true
+      },
+    });
+  }
+
+  window.local = new LocalData(Object.assign({}, DEFAULT, readStorage()));
+  Object.keys(readStorage()).forEach(function(key) {
+    local[key] = readStorage()[key];
+  });
 
   // 事件绑定
   bindEvent();
