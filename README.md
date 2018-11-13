@@ -7,7 +7,7 @@
 
 #### 2. 使用方式
   > 2.1 chrome 浏览器插件 
+  >> https://chrome.google.com/webstore/detail/addqrcode/cgfbnghkcekjfdahpfapbmgokapcfalb?hl=zh-CN
   
-  https://chrome.google.com/webstore/detail/addqrcode/cgfbnghkcekjfdahpfapbmgokapcfalb?hl=zh-CN
   > 2.2 网页版  
-  https://lushijie.github.io/AddQRcode/popup.html 
+  >> https://lushijie.github.io/AddQRcode/popup.html 
