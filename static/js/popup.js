@@ -13,7 +13,6 @@ var DEFAULT = {
   frontImage: '', // scale 对应的二维码大小
   frontImageOrigin: '', // 实际二维码大小
 }
-
 document.addEventListener('DOMContentLoaded', function () {
   var canvas = document.createElement('canvas');
   var ctx = canvas.getContext('2d');
@@ -137,6 +136,9 @@ document.addEventListener('DOMContentLoaded', function () {
         Object.keys(DEFAULT).forEach(function(key) {
           local[key] = DEFAULT[key];
         });
+
+        // fix safari
+        $('#qrfile').val('');
       }, 50);
     });
 
