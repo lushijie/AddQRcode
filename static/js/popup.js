@@ -2,11 +2,9 @@ var DEFAULT = {
   dbName: '__QR_DB__',
   qrText: '', // 二维码文案
   qrWidth: 100, // 二维码大小
-  qrMargin: 40, // 二维码距离图片边沿的距离
   qrPosStyle: 4, // 二维码位置类型
-  qrLeft: 0, // 二维码距离左侧距离
-  qrTop: 0, // 二维码距离顶部距离
-
+  qrLeft: 10, // 二维码距离左侧距离
+  qrTop: 10, // 二维码距离顶部距离
   scale: 1, // 当前缩放比例
   filePath: '', // 背景图文件地址
   backImage: '', // 背景图base64
@@ -52,14 +50,12 @@ document.addEventListener('DOMContentLoaded', function () {
     var backImageWidth = store.backImageWidth;
     var backImageHeight = store.backImageHeight;
     var qrWidth = store.qrWidth;
-    var qrMargin = store.qrMargin;
     var qrLeft = store.qrLeft;
     var qrTop = store.qrTop;
 
     // 预览
     if (isPreview) {
       qrWidth = store.scale * store.qrWidth;
-      qrMargin = store.scale * store.qrMargin;
 
       backImageWidth = store.scale * store.backImageWidth;
       backImageHeight = store.scale * store.backImageHeight;
@@ -67,32 +63,26 @@ document.addEventListener('DOMContentLoaded', function () {
       qrLeft = store.scale * store.qrLeft;
       qrTop = store.scale * store.qrTop;
     }
-    var distance = qrWidth + qrMargin;
-
     switch (+store.qrPosStyle) {
       case 1: // 左上角
-        pos.x = qrMargin;
-        pos.y = qrMargin;
+        pos.x = qrLeft;
+        pos.y = qrTop;
       break;
       case 2: // 右上角
-        pos.x = backImageWidth - distance;
-        pos.y = qrMargin;
+        pos.x = backImageWidth - qrWidth - qrLeft;
+        pos.y = qrTop;
       break;
       case 3: // 左下角
-        pos.x = qrMargin;
-        pos.y = backImageHeight - distance;
+        pos.x = qrLeft;
+        pos.y = backImageHeight - qrWidth - qrTop;
       break;
       case 4: // 右下角
-        pos.x = backImageWidth - distance;
-        pos.y = backImageHeight - distance;
+        pos.x = backImageWidth - qrWidth - qrLeft;
+        pos.y = backImageHeight - qrWidth - qrTop;
       break;
       case 5: // 居中
         pos.x = backImageWidth / 2 - +qrWidth / 2;
         pos.y = backImageHeight / 2 - +qrWidth / 2;
-      break;
-      case 6: // 自定义
-        pos.x = qrLeft;
-        pos.y =qrTop;
       break;
     }
 
@@ -216,17 +206,13 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // 二维码
-    $('#qrLeft, #qrTop, #qrMargin, #qrWidth').on('input', function(e) {
+    $('#qrLeft, #qrTop, #qrWidth').on('input', function(e) {
       var value = +e.target.value;
       local[$(e.target).attr('id')] = +value;
     });
 
     // 二维码位置
     $('#qrPosStyle').on('change', function(e) {
-      // 首先将可能存在自定义位置重置
-      local.qrTop = 0;
-      local.qrLeft = 0;
-
       local.qrPosStyle = +e.target.value;
     });
   }
@@ -302,24 +288,6 @@ document.addEventListener('DOMContentLoaded', function () {
         },
         enumerable: true
       },
-      qrMargin: {
-        get: function() {
-          return +DATA.qrMargin;
-        },
-        set: function(value) {
-          if (+DATA.backImageHeight != -1) {
-            value = Math.min(+DATA.backImageWidth - +DATA.qrWidth, +DATA.backImageHeight - +DATA.qrWidth, value);
-          }
-          $('#qrMargin').val(value);
-          DATA.qrMargin = +value;
-          updateStorage(DATA);
-
-          setTimeout(function() {
-            calcPosition(true);
-          }, 30);
-        },
-        enumerable: true
-      },
       qrPosStyle: {
         get: function() {
           return +DATA.qrPosStyle;
@@ -328,14 +296,7 @@ document.addEventListener('DOMContentLoaded', function () {
           $('#qrPosStyle').val(+value);
           DATA.qrPosStyle = +value;
           updateStorage(DATA);
-
-          $('.custom-pos-group')[+value === 6 ? 'show' : 'hide']();
-          if ([5, 6].indexOf(+value) > -1) {
-            $('.qr-margin-group').hide();
-          } else {
-            $('.qr-margin-group').show();
-          }
-
+          $('.custom-pos-group')[+value === 5 ? 'hide' : 'show']();
           setTimeout(function() {
             calcPosition(true);
           }, 30);
@@ -349,6 +310,9 @@ document.addEventListener('DOMContentLoaded', function () {
         set: function(value) {
           $('#qrLeft').val(value);
           DATA.qrLeft = value;
+          if (+DATA.backImageHeight !== -1) {
+            DATA.qrLeft = Math.min(value, +DATA.backImageWidth - +DATA.qrWidth)
+          }
           updateStorage(DATA);
 
           setTimeout(function() {
@@ -364,6 +328,9 @@ document.addEventListener('DOMContentLoaded', function () {
         set: function(value) {
           $('#qrTop').val(value);
           DATA.qrTop = value;
+          if (+DATA.backImageHeight !== -1) {
+            DATA.qrTop = Math.min(value, +DATA.backImageHeight - +DATA.qrWidth)
+          }
           updateStorage(DATA);
 
           setTimeout(function() {
@@ -409,9 +376,13 @@ document.addEventListener('DOMContentLoaded', function () {
           return DATA.frontImage || '';
         },
         set: function(value) {
-          $('#frontImage').attr('src', value);
           DATA.frontImage = value;
           updateStorage(DATA);
+
+          setTimeout(function() {
+            calcPosition(true);
+            $('#frontImage').attr('src', value);
+          }, 30);
         },
         enumerable: true
       },
